@@ -160,6 +160,7 @@ int main(int *argc, char **argv)
     return 0;
 }
 
+/*
 void*open_write_key(void*th_num){
     int i;
     printf("th_num : %c", *(char*)th_num);
@@ -196,3 +197,4 @@ void*open_write_key(void*th_num){
         close(fd);
     }
 }
+*/
