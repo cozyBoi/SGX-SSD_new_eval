@@ -127,6 +127,7 @@ public:
 typedef struct packet{
     int flag;
     int pid;
+    int fid;
 } _packet;
 
 typedef struct packet_in{
@@ -191,8 +192,10 @@ int main() {
             strcpy(dir, shmaddr_in->dir);
             
             shmaddr_f_to_p->pid = pn_dir.fpath_to_pid(dir);
+            shmaddr_f_to_p->fid = pn_dir.get_fid(dir);
             shmaddr_f_to_p->flag = 1;
-            printf("[policy find] %s is pid \"%d\"\n", dir, pn_dir.fpath_to_pid(dir));
+            printf("[policy find] %s have pid \"%d\"\n", dir, pn_dir.fpath_to_pid(dir));
+            printf("[fid find] %s have fid \"%d\"\n", dir, pn_dir.get_fid(dir));
         }
         //scanf("\n%s", dir);
         //printf("%d\n", pn_dir.get_fid(std::string(dir)));
