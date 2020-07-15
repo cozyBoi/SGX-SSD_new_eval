@@ -76,24 +76,23 @@ public:
     int fpath_to_pid(char dir[DIR_LEN]){
         //path에 대응되는 정책 리턴
         int i = 0;
-        
         for(policy_info*a : p_info){
             char text_for_regex[100];
             char text_for_config[100];
             strcpy(text_for_config, a->config);
             add_slash_to_dot(text_for_config);
-            
             strcpy(text_for_regex, "[0-9a-zA-Z]+");
             strcpy(text_for_regex + strlen(text_for_regex), text_for_config);
             const std::regex txt_regex(text_for_regex);
-            
+            fprintf(stderr, "regex text : %s\n", text_for_regex);
             if(std::regex_match(dir, txt_regex)){
                 printf("regex match between %s and %s\n", dir, text_for_regex);
                 return i;
             }
-            
+            fprintf(stderr, "hi!\n");
             i++;
         }
+        fprintf(stderr, "end!\n");
         return -1;
     }
     
@@ -189,10 +188,13 @@ int main() {
         
         if(shmaddr_in->flag){
             shmaddr_in->flag = 0;
+            fprintf(stderr, "4\n");
             strcpy(dir, shmaddr_in->dir);
-            
+            fprintf(stderr, "3\n");
             shmaddr_f_to_p->pid = pn_dir.fpath_to_pid(dir);
+            fprintf(stderr, "1\n");
             shmaddr_f_to_p->fid = pn_dir.get_fid(std::string(dir));
+            fprintf(stderr, "2\n");
             shmaddr_f_to_p->flag = 1;
             printf("[policy find] %s have pid \"%d\"\n", dir, pn_dir.fpath_to_pid(dir));
             printf("[fid find] %s have fid \"%d\"\n", dir, pn_dir.get_fid(std::string(dir)));

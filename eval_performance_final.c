@@ -54,7 +54,7 @@ typedef struct packet_out{
 int num_total_files = 1000; // num_total_files * file_size = 1GB
 //	int file_size = 32 * 1024;
 	int file_size =4 * 1024;
-	int thread_num = 4;
+	int thread_num = 1;
 
 sem_t mysem0, mysem1;
 int shmid_pid;
@@ -77,6 +77,7 @@ void*open_write_key(void*th_num){
 	{
 		file_name[15] = *(char*)th_num;
 
+/*
 		//파일 이름 설정 
 		//file name이 바뀐다.
 		set_file_name(file_name);
@@ -93,8 +94,9 @@ void*open_write_key(void*th_num){
 		int pid = shmaddr_f_to_p->pid;
         int fid = shmaddr_f_to_p->fid;
 		sem_post(&mysem0);
-			
-		int fd = syscall(OPEN_KEY, file_name, O_RDWR|O_CREAT, 0, pid ,fid);
+*/			
+//		int fd = syscall(OPEN_KEY, file_name, O_RDWR|O_CREAT, 0, pid ,fid);
+		int fd = syscall(OPEN_KEY, file_name, O_RDWR|O_CREAT, 0, 0 ,0);
 		if(fd == -1)
 		{
 			printf("FD ERROR!! \n");
@@ -110,6 +112,7 @@ void*open_write_key(void*th_num){
 
 int main(int argc, char **argv)
 {
+	printf("hi\n");
 	int fd;
 	int err=0;
 	int i=0;
@@ -125,8 +128,8 @@ int main(int argc, char **argv)
 	
 	//1. 사용자는 보호하고자하는 파일의(RT X)의 비율을 보낸다.
 	//2. 사용자는 각 파일의 크기를 보낸다.
-	capacity = atoi(argv[1]); //0,20,40,60,80,100
-	ret_ratio = atoi(argv[2]);
+	//capacity = atoi(argv[1]); //0,20,40,60,80,100
+	//ret_ratio = atoi(argv[2]);
 
 	
 	//int num_total_files = 50; // num_total_files * file_size = 1GB
@@ -153,27 +156,32 @@ int main(int argc, char **argv)
 
 	shmid_out = shmget((key_t)0x1236, sizeof(_packet_out), IPC_CREAT | 0666);
 	shmaddr_out = (_packet_out*)shmat(shmid_out, NULL, 0);
-
+printf("hi\n");
 	printf("start experiment!\n");
 	clock_gettime(CLOCK_MONOTONIC, &clock_s);
 	sem_init(&mysem0, 0, 1);
 	sem_init(&mysem1, 0, 1);
 
 
-
+printf("hi0\n");
 	pthread_t p_thread[16];	
 	char jin[16];
 	for(i = 0; i < thread_num; i++){
 		jin[i] = i + '0';
-		pthread_create(&p_thread[i], NULL, open_write_key, (void*)&(jin[i]));
+		int thr_id = pthread_create(&p_thread[i], NULL, open_write_key, (void*)&(jin[i]));
+		if(thr_id < 0){
+			fprintf(stderr, "thread create error\n");
+			exit(0);
+		}
 	}
 	
-	
+	printf("hi1\n");
 //	for(i = 0; i < num_capacity_files; i++)
 	int status = 0;
 	for(i = 0; i < thread_num; i++){
 		pthread_join(p_thread[i], (void**)&status);
 	}
+	printf("hi2\n");
 	clock_gettime(CLOCK_MONOTONIC, &clock_e);
 	time_s = (clock_s.tv_nsec/10e9) + clock_s.tv_sec;
 	time_e = (clock_e.tv_nsec/10e9) + clock_e.tv_sec;
