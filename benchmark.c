@@ -28,14 +28,31 @@ typedef struct packet_out{
 #define CLOSE_KEY 335
 
 #define MAX 1024
+
+#define TOTAL_WORKLOAD_SIZE 1000 // 1000MB
+#define BIG_FILE_SIZE (200*1024*1024)
+#define BUF_SIZE 4096
+#define NUM_RATIO 5
+#define DEFAULT_RET_TIME 123
+#define NAME_LEN 30
+#define NAME_END 21
+#define NAME_BEGIN 15
 void*open_write_key(void*th_num);
+int set_file_name(char file_name[NAME_LEN]);
+int write_file(int fd, int file_size, char buf[BUF_SIZE], char file_pattern_flag);
+
+sem_t mysem0, mysem1;
+int shmid_pid;
+int shmid_out;
+_packet*shmaddr_f_to_p;
+_packet_out*shmaddr_out;
 
 int main(int *argc, char **argv)
 {
-    int shmid_pid = shmget((key_t)0x1234, sizeof(_packet), IPC_CREAT | 0666);
+    shmid_pid = shmget((key_t)0x1234, sizeof(_packet), IPC_CREAT | 0666);
     _packet*shmaddr_f_to_p = (_packet*)shmat(shmid_pid, NULL, 0);
     
-    int shmid_out = shmget((key_t)0x1236, sizeof(_packet_out), IPC_CREAT | 0666);
+    shmid_out = shmget((key_t)0x1236, sizeof(_packet_out), IPC_CREAT | 0666);
     _packet_out*shmaddr_out = (_packet_out*)shmat(shmid_out, NULL, 0);
     
     int fd;
@@ -50,16 +67,12 @@ int main(int *argc, char **argv)
     char file_path[3][20] = {"/SSD/foo7.txt", "/SSD/foo8.txt", "/SSD/foo9.txt"};
     char bufS[512];
 
+    
+    
     struct timespec clock_s, clock_e;
     double time_s, time_e;
     srand(time(NULL));
     unsigned int pid, fid;
-    //    while(i<3){
-    pid = 0x11223344;
-    fid = 0x99999999;
-    //key=11223344;
-    
-    
     char*in = "/home/jinu/SSD/foo7.txt";
     strcpy(shmaddr_out->dir, in);
     shmaddr_out->flag = 1;
@@ -69,6 +82,8 @@ int main(int *argc, char **argv)
     fid = shmaddr_f_to_p->fid;
     printf("pid : %d, fid : %d\n", pid, fid);
     //key file open
+    sem_init(&mysem0, 0, 1);
+    sem_init(&mysem1, 0, 1);
     fd_key = syscall(OPEN_KEY, "/home/jinu/SSD/foo7.txt", O_RDWR | O_CREAT, 0, pid, fid);
     //      fd_key = syscall(OPEN_KEY, file_path[i++], O_RDWR|O_CREAT, 0, key);
     //    fd_key = syscall(OPEN_KEY, "foo.txt", O_RDWR, 0, key);
@@ -160,7 +175,23 @@ int main(int *argc, char **argv)
     return 0;
 }
 
-/*
+int set_file_name(char file_name[NAME_LEN])
+{
+    int i;
+    
+    file_name[NAME_END]++;
+    for(i=NAME_END; i>NAME_BEGIN; i--)
+    {
+        if(file_name[i]>'9' && i != NAME_BEGIN+1)
+        {
+            file_name[i]='0';
+            file_name[i-1]++;
+        }
+    }
+    
+    return 1;
+}
+
 void*open_write_key(void*th_num){
     int i;
     printf("th_num : %c", *(char*)th_num);
@@ -169,7 +200,9 @@ void*open_write_key(void*th_num){
     for(i = 0; i < num_total_files; i++)
     {
         file_name[15] = *(char*)th_num;
-
+        if('9' < (char*)th_num){
+            file_name[15] = 'A' + (char*)th_num - '9' + 1;
+        }
         //파일 이름 설정
         //file name이 바뀐다.
         set_file_name(file_name);
@@ -197,4 +230,23 @@ void*open_write_key(void*th_num){
         close(fd);
     }
 }
-*/
+
+int write_file(int fd, int file_size, char buf[BUF_SIZE], char file_pattern_flag)
+{
+    int i;
+    int err;
+    int random_offset;
+
+    lseek(fd, 0, SEEK_SET);
+
+    //sequential write 수행
+    if(file_pattern_flag=='S')
+    {
+        for(i=0; i<file_size/BUF_SIZE; i++)
+            err = syscall(WRITE_KEY, fd, buf, BUF_SIZE);
+    }
+
+    fdatasync(fd);
+
+    return err;
+}
