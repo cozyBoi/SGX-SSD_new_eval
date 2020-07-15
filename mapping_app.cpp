@@ -150,7 +150,7 @@ int get_fileID(char*in){
 }
 
 int main() {
-    int shmid_pid = shmget((key_t)0x1234, sizeof(_packet), IPC_CREAT | 0666);
+    int shmid_pid = shmget((key_t)0x1237, sizeof(_packet), IPC_CREAT | 0666);
     _packet*shmaddr_f_to_p = (_packet*)shmat(shmid_pid, NULL, 0);
     
     int shmid_fpth = shmget((key_t)0x1235, sizeof(_packet_fpth), IPC_CREAT | 0666);

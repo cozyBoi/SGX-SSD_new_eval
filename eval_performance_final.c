@@ -151,19 +151,19 @@ int main(int argc, char **argv)
 
 	printf("number of total file : %d, size of file %d\n", num_total_files, file_size);
 
-	shmid_pid = shmget((key_t)0x1234, sizeof(_packet), IPC_CREAT | 0666);
+	shmid_pid = shmget((key_t)0x1237, sizeof(_packet), IPC_CREAT | 0666);
 	shmaddr_f_to_p = (_packet*)shmat(shmid_pid, NULL, 0);
 
 	shmid_out = shmget((key_t)0x1236, sizeof(_packet_out), IPC_CREAT | 0666);
 	shmaddr_out = (_packet_out*)shmat(shmid_out, NULL, 0);
-printf("hi\n");
+    printf("hi\n");
 	printf("start experiment!\n");
 	clock_gettime(CLOCK_MONOTONIC, &clock_s);
 	sem_init(&mysem0, 0, 1);
 	sem_init(&mysem1, 0, 1);
 
 
-printf("hi0\n");
+    printf("hi0\n");
 	pthread_t p_thread[16];	
 	char jin[16];
 	for(i = 0; i < thread_num; i++){
