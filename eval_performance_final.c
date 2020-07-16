@@ -54,7 +54,8 @@ typedef struct packet_out{
 int num_total_files = 1; // num_total_files * file_size = 1GB
 //	int file_size = 32 * 1024;
 	int file_size = 512 * 1024 * 1024;
-	int thread_num = 1;
+	//int file_size = 1024 * 1024;
+	int thread_num = 4;
 
 sem_t mysem0, mysem1;
 int shmid_pid;
@@ -64,16 +65,16 @@ _packet_out*shmaddr_out;
 
 
 int set_file_name(char file_name[NAME_LEN]);
-int write_file(int fd, int file_size, char buf[BUF_SIZE], char file_pattern_flag);
+int write_file(int fd, int file_size, char buf[BUF_SIZE], char file_pattern_flag, char th_num);
 
 
 char buf[BUF_SIZE]={'X',};
 void*open_write_key(void*th_num){
 	int i;
-	printf("th_num : %c", *(char*)th_num);
+	printf("th_num : %c\n", *(char*)th_num);
 	// til '/' 17, til '0' 24
 	char file_name[NAME_LEN]="/home/jeewon/SSD/0000000.txt";
-
+	
 	for(i = 0; i < num_total_files; i++)
 	{
 		file_name[18] = *(char*)th_num;
@@ -101,9 +102,11 @@ void*open_write_key(void*th_num){
 			printf("FD ERROR!! \n");
 			return 0;
 		}
-
-		write_file(fd, file_size, buf, 'S');
+		printf("222222 : th_num : %c\n", *(char*)th_num);
+		write_file(fd, file_size, buf, 'S', *(char*)th_num);
+		printf("666666 : th_num : %c\n", *(char*)th_num);
 		close(fd);
+		printf("777777 : th_num : %c\n", *(char*)th_num);
 	}
 }
 
@@ -167,7 +170,11 @@ int main(int argc, char **argv)
 	char jin[16];
 	for(i = 0; i < thread_num; i++){
 		jin[i] = i + '0';
+		
 		int thr_id = pthread_create(&p_thread[i], NULL, open_write_key, (void*)&(jin[i]));
+
+		printf("thread %c made\n", jin[i]);
+
 		if(thr_id < 0){
 			fprintf(stderr, "thread create error\n");
 			exit(0);
@@ -177,8 +184,12 @@ int main(int argc, char **argv)
 	printf("hi1\n");
 //	for(i = 0; i < num_capacity_files; i++)
 	int status = 0;
-	for(i = 0; i < thread_num; i++){
-		pthread_join(p_thread[i], (void**)&status);
+	for(int i = 0; i < thread_num; i++){
+		//error  : i was changed in somewhere -> change scope
+		sem_wait(&mysem1);
+		int join_ret = pthread_join(p_thread[i], (void**)&status);
+		printf("i : %d, join_ret : %d\n", i, join_ret);
+		sem_post(&mysem1);
 	}
 	printf("hi2\n");
 	clock_gettime(CLOCK_MONOTONIC, &clock_e);
@@ -203,12 +214,12 @@ int set_file_name(char file_name[NAME_LEN])
 	return 1;
 }
 
-int write_file(int fd, int file_size, char buf[BUF_SIZE], char file_pattern_flag)
+int write_file(int fd, int file_size, char buf[BUF_SIZE], char file_pattern_flag, char th_num)
 {
 	int i;
 	int err;
 	int random_offset;
-
+	printf("333333 : %c\n", th_num);
 	lseek(fd, 0, SEEK_SET);
 
 	//sequential write 수행
@@ -217,8 +228,8 @@ int write_file(int fd, int file_size, char buf[BUF_SIZE], char file_pattern_flag
 		for(i=0; i<file_size/BUF_SIZE; i++)
     		err = write(fd, buf, BUF_SIZE);
 	}
-
+printf("44444 : %c\n", th_num);
 	fdatasync(fd);
-
+printf("55555 : %c\n", th_num);
 	return err;
 }
