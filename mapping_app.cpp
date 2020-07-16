@@ -13,9 +13,14 @@ const int BUF_MAX_SIZE = 1000;
 const int para_MAX_SIZE = 3;
 const int para_MAX_LEN = 100; //same as max directory size
 #define DIR_LEN 100
+/*
 #define CONFIG_PID_PATH "/home/jinu/Desktop/config_pid"
 #define POLICY_LIST_PATH "/home/jinu/Desktop/policy_list"
-#define FPATH_FID_MAPPING_PATH "/home/jinu/Desktop/fpath_fid_mapping"
+#define FPATH_FID_MAPPING_PATH "/home/jinu/Desktop/fpath_fid_mapping"*/
+
+#define CONFIG_PID_PATH "/home/jeewon/Desktop/config_pid"
+#define POLICY_LIST_PATH "/home/jeewon/Desktop/policy_list"
+#define FPATH_FID_MAPPING_PATH "/home/jeewon/Desktop/fpath_fid_mapping"
 
 //#define CONFIG_PID_PATH "/Users/ppp123/Desktop/config_pid"
 //#define POLICY_LIST_PATH "/Users/ppp123/Desktop/policy_list"

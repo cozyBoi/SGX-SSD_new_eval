@@ -30,13 +30,13 @@ typedef struct packet_out{
 #define WRITE_KEY 337
 #define MAX 1024
 
-#define BIG_FILE_SIZE (200*1024*1024)
+#define BIG_FILE_SIZE (512*1024*1024)
 #define BUF_SIZE 4096
 #define NUM_RATIO 5
 #define DEFAULT_RET_TIME 123
-#define NAME_LEN 30
-#define NAME_END 21
-#define NAME_BEGIN 15
+#define NAME_LEN 34
+#define NAME_END 23
+#define NAME_BEGIN 17
 /*
  *	실험1. 성능 테스트.
  *	파일 타입 : retention time O(default), retention time X
@@ -51,9 +51,9 @@ typedef struct packet_out{
  * 파일의 비율, 파일의 size, ...
  * */
 
-int num_total_files = 1000; // num_total_files * file_size = 1GB
+int num_total_files = 1; // num_total_files * file_size = 1GB
 //	int file_size = 32 * 1024;
-	int file_size =4 * 1024;
+	int file_size = 512 * 1024 * 1024;
 	int thread_num = 1;
 
 sem_t mysem0, mysem1;
@@ -71,20 +71,19 @@ char buf[BUF_SIZE]={'X',};
 void*open_write_key(void*th_num){
 	int i;
 	printf("th_num : %c", *(char*)th_num);
-	char file_name[NAME_LEN]="/home/jinu/SSD/0000000";
+	// til '/' 17, til '0' 24
+	char file_name[NAME_LEN]="/home/jeewon/SSD/0000000.txt";
 
 	for(i = 0; i < num_total_files; i++)
 	{
-		file_name[15] = *(char*)th_num;
+		file_name[18] = *(char*)th_num;
 
-/*
+
 		//파일 이름 설정 
 		//file name이 바뀐다.
 		set_file_name(file_name);
-	 	// printf("key close file return : %d\n", err);
-		//printf("A, %c\n", *(char*)th_num);
+		//printf("filename : %s\n", file_name);
 		sem_wait(&mysem0);
-		//printf("B, %c\n", *(char*)th_num);
 		strcpy(shmaddr_out->dir, file_name);
 		shmaddr_out->flag = 1;
 		
@@ -94,9 +93,9 @@ void*open_write_key(void*th_num){
 		int pid = shmaddr_f_to_p->pid;
         int fid = shmaddr_f_to_p->fid;
 		sem_post(&mysem0);
-*/			
-//		int fd = syscall(OPEN_KEY, file_name, O_RDWR|O_CREAT, 0, pid ,fid);
-		int fd = syscall(OPEN_KEY, file_name, O_RDWR|O_CREAT, 0, 0 ,0);
+			
+		int fd = syscall(OPEN_KEY, file_name, O_RDWR|O_CREAT, 0, pid ,fid);
+
 		if(fd == -1)
 		{
 			printf("FD ERROR!! \n");
@@ -119,9 +118,9 @@ int main(int argc, char **argv)
 	long int j = 0;
 	int ret_time, ret_ratio, capacity;
 	
-	char file_name[NAME_LEN]="/home/jinu/SSD/0000000.txt";
-	char init_file_name[NAME_LEN]="/home/jinu/SSD/0000000.txt";
-	char init2_file_name[NAME_LEN]="/home/jinu/SSD/0000000.txt";
+	char file_name[NAME_LEN]="/home/jeewon/SSD/0000000.txt";
+	char init_file_name[NAME_LEN]="/home/jeewon/SSD/0000000.txt";
+	char init2_file_name[NAME_LEN]="/home/jeewon/SSD/0000000.txt";
 	
 	struct timespec clock_s, clock_e;
 	double time_s, time_e;
@@ -201,7 +200,6 @@ int set_file_name(char file_name[NAME_LEN])
 			file_name[i-1]++;
 		}
 	}
-	
 	return 1;
 }
 
